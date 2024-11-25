@@ -1,0 +1,218 @@
+<% title 'Acompanhamento de pedidos FBM' %>
+
+<div class="container">
+  <% if @orders['payload']["NextToken"].present? %>
+    <%= link_to view_live_orders_dashboard_index_path(order_kind: 'MFN', next_token: @orders['payload']["NextToken"]), class: 'btn btn-primary', target: '_blank' do %><i class="fas fa-plus"></i> Próximos 100 pedidos <% end %>
+  <% end %>
+  <%= button_tag '', class: 'btn btn-light prepare-selected-orders', disabled: true do %>
+    <i class="fa-regular fa-paper-plane"></i> Preparar Envio
+    <i class="fas fa-spinner fa-spin" style="display: none;"></i>
+  <% end %>
+  <div class="row">
+    <div class="col-12">
+      <table class="table table-dark table-hover table-responsive table-striped" style="overflow-x: scroll;" id="orders-table">
+        <thead>
+          <tr>
+            <th class="text-center" width=100><i class="fa fa-ellipsis-v"></i></th>
+            <th class="text-center"><%= 'Data' %></th>
+            <th class="text-center"><%= 'Detalhes' %></th>
+            <th class="text-center"><%= 'Imagem' %></th>
+            <th class="text-center"><%= 'Nome do Produto(s)' %></th>
+            <th class="text-center"><%= 'Status' %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @orders['payload']['Orders'].each do |order| %>
+            <tr>
+              <td class="text-center">
+                <div class="btn-group" role="group">
+                  <% if OrderMarkup.find_by(amazon_order_id: order['AmazonOrderId'], status: 'concluded').present? %>
+                    <button class="btn btn-success"><i class="fas fa-check"></i></button>
+                    <button class="btn btn-light change-order-status" data-order-status='<%= 'pending' %>' data-order-id="<%= order['AmazonOrderId'] %>"><i class="fas fa-sync-alt"></i></button>
+                  <% else %>
+                    <input style="width: 20px; height: 40px;" type="checkbox" class="order-checkbox"
+                                                                              data-order-id="<%= order['AmazonOrderId'] %>"
+                                                                              data-number-of-items-unshipped="<%= order['NumberOfItemsUnshipped'] %>"
+                                                                              data-order-status="<%= 'concluded' %>" >
+                    <button style="margin-left: 10px;" class="btn btn-primary change-order-status" data-order-status='<%= 'concluded' %>' data-order-id="<%= order['AmazonOrderId'] %>">Marcar</button>
+                  <% end %>
+                </div>
+              </td>
+              <td class="text-center">
+                <b><%= horas_ou_dias_atras(order['PurchaseDate']) %></b>
+                <p><%= formatar_data(order['PurchaseDate']) %></p>
+              </td>
+              <td class="text-center"><span class="text-primary"><b><%= order['AmazonOrderId'] %></b></span></td>
+              <td class="text-center text-secondary"><i class="fas fa-image h2"></i></td>
+              <td class="text-center loading-product" data-order-id='<%= order['AmazonOrderId'] %>' width=300><i class="fas fa-spinner fa-spin"></i></td>
+              <td class="text-center">
+                <span class="badge bg-danger">
+                  <%= order['OrderStatus'] %> (<%= order['NumberOfItemsUnshipped'] %>)
+                </span>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+        <tfoot>
+          <tr>
+            <th colspan="14">
+              
+            </th>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+<script>
+  $(document).on('click', '.change-order-status', function() {
+    var button = $(this);
+    var orderId = button.data('order-id');
+    var orderStatus = button.data('order-status');
+
+    $.ajax({
+      url: '<%= change_order_markup_status_dashboard_index_path %>',
+      type: 'POST',
+      data: {
+        amazon_order_id: orderId,
+        status: orderStatus
+      },
+      success: function(data) {
+        if (orderStatus === 'pending') {
+          button.removeClass('btn-success').removeClass('btn-light').addClass('btn-primary').html('Marcar').attr('data-order-status', 'concluded');
+          button.parent('.btn-group').find('.btn-success').remove();
+        } else {
+          button.removeClass('btn-primary').addClass('btn-success').html('<i class="fas fa-check"></i>');
+          var newButton = $('<button>').addClass('btn btn-light change-order-status').attr('data-order-status', 'pending').attr('data-order-id', orderId)
+                                       .html('<i class="fas fa-sync-alt"></i>');
+          button.after(newButton);
+        }
+      },
+      error: function(xhr, status, error) {
+
+      }
+    });
+  });
+</script>
+<script>
+  $(document).ready(function() {
+    var prepareOrderButton = $('.prepare-selected-orders');
+
+    $('.order-checkbox').change(function() {
+      if ($('.order-checkbox:checked').length > 0) {
+        prepareOrderButton.removeAttr('disabled');
+      } else {
+        prepareOrderButton.attr('disabled', true);
+      }
+    });
+
+    prepareOrderButton.click(function() {
+      var button = $(this);
+      var spinner = button.find('.fa-spinner');
+      button.prop('disabled', true);
+
+      button.find('.fa-paper-plane').hide();
+      spinner.show();
+      
+      var selectedOrders = [];
+
+      $('.order-checkbox:checked').each(function() {
+        var order = {
+          amazon_order_id: $(this).data('order-id'),
+          number_of_items_unshipped: $(this).data('number-of-items-unshipped'),
+          order_status: $(this).data('order-status')
+        };
+        selectedOrders.push(order);
+      });
+
+      if (selectedOrders.length > 0) {
+        $.ajax({
+          url: '<%= create_product_preparations_product_preparations_path %>',
+          type: 'POST',
+          data: {
+            selected_orders: selectedOrders
+          },
+          success: function(response) {
+            console.log('Pedidos preparados com sucesso!');
+            $('.order-checkbox:checked').each(function() {
+                var checkbox = $(this);
+                
+                checkbox.removeClass('btn-primary').addClass('btn-success').html('<i class="fas fa-check"></i>');
+
+                var newButton = $('<button>')
+                  .attr('type', 'button')
+                  .addClass('btn btn-success change-order-status')
+                  .attr('data-order-status', 'concluded')
+                  .html('<i class="fas fa-check"></i>')
+                
+                checkbox.after(newButton);
+
+                checkbox.remove();
+            });
+          },
+          error: function(xhr, status, error) {
+            console.error('Erro ao preparar os pedidos:', error);
+          },
+          complete: function() {
+            button.find('.fa-paper-plane').show();
+            spinner.hide();
+          }
+        });
+      } else {
+        console.log('Nenhum pedido selecionado.');
+      }
+    });
+  });
+</script>
+<script>
+$(document).ready(function() {
+  var loadingProducts = $('.loading-product');
+
+  function makeAjaxRequest(index) {
+    if (index < loadingProducts.length) {
+      var loadingProductElement = $(loadingProducts[index]);
+      var amazonOrderId = loadingProductElement.data('order-id');
+
+      $.ajax({
+        url: "<%= find_by_seller_sku_products_path %>",
+        method: "GET",
+        data: {
+          amazon_order_id: amazonOrderId
+        },
+        success: function(orderitemResponse) {
+          var productId = orderitemResponse.product_id;
+          console.log(orderitemResponse);
+          var editLink = '/products/' + productId + '/edit';
+          var html = '<span class="btn-group"><p><b><a class="btn btn-light btn-sm text-dark" target="_blank" href="' + editLink + '"><i class="fas fa-edit"></i></a></b></p>';
+          if (orderitemResponse.supplier_url) {
+            html += '<span><p><b><a class="btn btn-light btn-sm text-dark" target="_blank" href="' + orderitemResponse.supplier_url + '"><i class="fa-brands fa-internet-explorer"></i></a></b></p></span>';
+          }
+       
+          html += '</span>'
+          html += '<span><p style="font-size:9px !important;">' + orderitemResponse.item_name + '</p></span>';
+          html += '<span><p><b>SellerSKU:</b> ' + orderitemResponse.seller_sku + '</p></span>';
+          html += '<span><p><b>ASIN:</b> ' + orderitemResponse.asin1 + '</p></span>';
+
+          loadingProductElement.find('.fa-spinner').remove();
+
+          loadingProductElement.append(html);
+          makeAjaxRequest(index + 1);
+        },
+        error: function(xhr, status, error) {
+          console.error(xhr.responseText);
+          makeAjaxRequest(index + 1);
+        }
+      });
+    }
+  }
+
+  makeAjaxRequest(0);
+});
+
+
+</script>
+<script>
+  $('.table').DataTable({
+    lengthMenu: [ [100, 500, 1000], [100, 500, 1000] ]
+  });
+</script>

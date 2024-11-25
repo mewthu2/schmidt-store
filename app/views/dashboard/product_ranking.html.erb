@@ -1,0 +1,11 @@
+<% title 'Ranqueamento de Produtos' %>
+
+<% if params[:interval] == 'thirty_days' %>
+  <%= render partial: 'dashboard/partials/thirty_days', locals: { product_sales: @product_sales } %>
+<% elsif params[:interval] == 'seven_days' %>
+  <%= render partial: 'dashboard/partials/seven_days', locals: { product_sales: @product_sales } %>
+<% end %>
+
+<script>
+   $('.table').DataTable();
+</script>

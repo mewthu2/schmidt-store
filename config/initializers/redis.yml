@@ -1,0 +1,15 @@
+development:
+  url: ENV["REDISCLOUD_URL"]
+  logger: info
+
+test:
+  url: ENV["REDISCLOUD_URL"]
+  logger: false
+
+staging:
+  url: ENV["REDISCLOUD_URL"]
+  logger: false
+
+production:
+  url: ENV["REDISCLOUD_URL"]
+  logger: warn

@@ -1,0 +1,71 @@
+<% title 'Preparações de Envio' %>
+
+<div class="container">
+  <%= link_to new_product_preparation_path, class: 'btn btn-primary' do %> <i class="fas fa-plus"></i> Nova Prepração de Envio <% end %>
+  <div class="row">
+    <div class="col-12">
+      <table class="table table-dark table-hover table-responsive table-bordered table-striped" style="overflow-y: scroll;" id="product_preparations_table">
+        <thead>
+          <tr>
+            <th class="text-center"><i class="fa fa-ellipsis-v"></i></th>
+            <th class="text-center"><%= 'Ordem' %></th>
+            <th class="text-center" width="700"><%= 'Produtos' %></th>
+            <th class="text-center"><%= 'Última atualização' %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @product_preparations.each do |product_preparation| %>
+            <% supplier_urls = product_preparation.preparation_items.map(&:product).pluck(:supplier_url) %>
+            <tr>
+              <td class="text-center">
+                <div class="btn-group" role="group" aria-label="Basic example">
+                  <%= link_to edit_product_preparation_path(id: product_preparation.id), class: 'btn btn-light btn-sm text-dark me-1' do %>
+                    <i class="fas fa-edit"></i>
+                  <% end %>
+                  <%= link_to '', class: 'btn btn-light btn-sm text-dark me-1 openLinks', data: { links: supplier_urls } do %>
+                    <i class="fab fa-internet-explorer"></i>
+                  <% end %>
+                  <%= button_to "<i class='fa fa-times'></i>".html_safe, product_preparation_path(product_preparation), data: { confirm: "Are you sure?" }, method: :delete, class: 'btn btn-danger btn-sm text-dark' %>
+                </div>
+              </td>
+              <td class="text-center"><%= product_preparation.description %></td>
+              <td class="text-center"><%= PreparationItemsPresenter.new(product_preparation).items %></td>
+              <td class="text-center"><%= product_preparation.updated_at.strftime('%d/%m/%Y') %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<script>
+  $(document).ready(function() {
+      $('#product_preparations_table').DataTable();
+  });
+
+  $('#filters select').on('input', function () {
+    $('form#search-form').submit();
+  });
+
+  document.addEventListener('DOMContentLoaded', function() {
+    var openLinks = document.querySelectorAll('.openLinks');
+    
+    openLinks.forEach(function(openLink) {
+      openLink.addEventListener('click', function(event) {
+        event.preventDefault();
+        
+        var links = JSON.parse(this.dataset.links);
+
+        links.forEach(function(link) {
+          if (link !== null) {
+            console.log('Link:', link);
+            window.open(link);
+          } else {
+            console.log('Link not found..')
+          };
+        });
+      });
+    });
+  });
+</script>
+

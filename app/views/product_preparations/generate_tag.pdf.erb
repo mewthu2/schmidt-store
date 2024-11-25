@@ -1,0 +1,93 @@
+<div class="tags">
+  <% @preparation_items.each do |pi|%>
+    <div class="card">
+      <div class="text-center" style="background-color: darkgrey;">
+        <%= image_tag wicked_pdf_asset_base64('admin/logo.png'), size: '300x75' %>
+      </div>
+      <table class="table table-bordered">
+        <tbody>
+          <tr>          
+            <th class="text-center label">
+              <strong style="color: white;"> Product name:</strong>
+            </th>
+            <td class="text-center info" colspan="2">
+              <hr class="class-1" />
+                <%= pi.product.item_name %>
+              <hr>
+            </td>                  
+          </tr>      
+          <tr>      	
+            <th class="text-center label">
+              <strong style="color: white;">FNSKU</strong>
+            </th>
+            <td class="text-center info" colspan="2">
+              <%= pi.product.fnsku %>
+              <hr>
+            </td>
+          </tr>
+          <tr>      	
+            <th class="text-center label">
+              <strong style="color: white;">QUANTITY:</strong>
+            </th>
+            <td class="text-center info" colspan="2">
+              <%= pi.quantity %>
+              <hr>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</div>
+<style>
+  hr {
+    width: 100%;
+    height: 3px;
+    border: 0px;
+    background-color: black;
+  }
+  .info {
+    border-style: solid;
+    font-size: 30px !important;
+    border: 1px !important;
+  }
+  .label {
+    background-color: black;
+    border-style: solid;
+  }
+  .card {
+    min-height: 27em;
+    border-style: dashed;
+    margin-top: 1em;
+    padding: 1em;
+  }
+
+  .tags * {
+    position: relative;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
+  }
+  .tags .table {
+    width: 100%;
+  }
+  .tags .table th {
+    font-weight: normal;
+    text-transform: uppercase;
+  }
+  .tags .table th,
+  .tags .table td {
+    padding: 4px;
+  }
+  .tags .box-title {
+    margin-bottom: 30px;
+    padding: 7px 0 7px 10px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+
+  .tags .box-title:after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+</style>

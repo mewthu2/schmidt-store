@@ -1,0 +1,99 @@
+<div class="container">
+  <div class="row">
+    <div class="col-12">
+      <%= button_tag class: 'btn btn-primary', id: 'select-all-btn' do %>
+        Selecionar Todos <i class="fas fa-check-double"></i>
+      <% end %>
+      <%= link_to '#', class: 'btn btn-light btn-sm text-dark', id: 'generate-tag-btn', target: '_blank' do %>
+        Gerar Etiquetas <i class="fas fa-tags"></i>
+      <% end %>
+      <%= link_to '#', class: 'btn btn-light btn-sm text-dark', id: 'generate-tag-btn-fnsku', target: '_blank' do %>
+        Gerar Etiquetas FNSKU <i class="fas fa-tags"></i>
+      <% end %>
+    </div>
+  </div>
+</div>
+<%= form_for(product_preparation, html: { autocomplete: 'off' }, data: { disabled: read_only }) do |form| %>
+  <div class="container">
+    <div class="page-header">
+      <h4>Editar Preparação de Envio<small class="text-light">Dados sobre a preparação de envio</small></h4>
+    </div>
+
+    <div class="row">
+      <div class="col-2">
+        <%= form.label :description, 'Descrição', class: 'col-form-label text-primary' %>
+      </div>
+      <div class="col-10">
+        <%= form.text_field :description, class: 'form-control' %>
+      </div>
+    </div>
+
+    <div id="preparation_itens">
+      <%= form.fields_for :preparation_items do |pi| %>
+        <%= render 'preparation_item_fields', f: pi %>
+      <% end %>
+      <% if params[:action] != 'show' %>
+        <div class="links">
+          <%= link_to_add_association form, :preparation_items, class: 'btn btn-primary' do %>
+            <i class="fa fa-plus"></i> Adicionar item
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+    <div class="panel-buttons bg-dark">
+      <%= link_to product_preparations_path, class: 'btn btn-secondary btn-lg' do %><i class="fa fa-undo"></i> Voltar <% end %>
+      <% unless read_only %>
+        <%= form.button class: 'btn btn-primary btn-lg', data: { disable_with: 'Salvando...' } do %><i class="fa fa-check"></i> Salvar <% end %>
+      <% end %>
+    </div>
+  </div>
+<% end %>
+<script>
+  $('#preparation_itens').on('cocoon:after-insert', function(e, added_task) {
+    $("select.select2").select2({
+      language: "pt-BR",
+      placeholder: " ",
+      width: '100%',
+      allowClear: true      
+    });
+  });
+
+  document.addEventListener('DOMContentLoaded', function() {
+    function getSelectedIds() {
+      var selectedIds = [];
+      document.querySelectorAll('.product-preparation-checkbox:checked').forEach(function(checkbox) {
+        selectedIds.push(checkbox.value);
+      });
+      return selectedIds;
+    }
+
+    document.getElementById('select-all-btn').addEventListener('click', function() {
+      var checkboxes = document.querySelectorAll('.product-preparation-checkbox');
+      checkboxes.forEach(function(checkbox) {
+        checkbox.checked = !checkbox.checked;
+      });
+    });
+
+    document.getElementById('generate-tag-btn-fnsku').addEventListener('click', function(event) {
+      var selectedIds = getSelectedIds();
+      if (selectedIds.length > 0) {
+        var url = '<%= generate_fnsku_tag_product_preparations_path %>' + '?product_preparation_ids=' + selectedIds.join(',');
+        window.location.href = url;
+      } else {
+        event.preventDefault();
+        alert("Por favor, selecione pelo menos um item.");
+      }
+    });
+
+    document.getElementById('generate-tag-btn').addEventListener('click', function(event) {
+      var selectedIds = getSelectedIds();
+      if (selectedIds.length > 0) {
+        var url = '<%= generate_tag_product_preparations_path %>' + '?product_preparation_ids=' + selectedIds.join(',');
+        window.location.href = url;
+      } else {
+        event.preventDefault();
+        alert("Por favor, selecione pelo menos um item.");
+      }
+    });
+  });
+</script>

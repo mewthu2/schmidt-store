@@ -1,0 +1,21 @@
+<header class="navbar-header">
+  <div class="navbar-brand">
+    <div class="brand-logo" style="background: black;">
+      <%= link_to root_path do %>
+        <%= image_tag 'admin/logo' %>
+      <% end %>
+    </div>
+  </div>
+  <div class="navbar-content">
+    <b class="badge bg-secondary"><%= yield :title %></b>
+  </div>
+  <div class="navbar-dropdowns">
+    <nav class="navbar navbar-expand-sm">
+      <div class="dropdown" style="margin-top: 7px; margin-right: -12em;">
+        <%= image_tag 'admin/usuario-200x200', style: 'width:10%; border-radius: 50%;' %>
+        <strong class="badge bg-primary"><i class="fa-solid fa-user"></i> <%= current_user.name %></strong>
+        <strong class="badge bg-danger"><i class="fa-solid fa-right-from-bracket"></i> <%= link_to destroy_user_session_path(current_user), data: { turbo: :false }, class: 'text-light', style: 'font-size: 11px !important;' do %>Sair</strong><% end %>
+      </div>
+    </nav>
+  </div>
+</header>
