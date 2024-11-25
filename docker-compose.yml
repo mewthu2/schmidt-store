@@ -2,8 +2,8 @@ version: '3'
 
 services:
   web:
-    container_name: unique-bundle-store
-    image: unique-bundle-store:latest
+    container_name: schmidt-store
+    image: schmidt-store:latest
     command: sh -c "rails server -b 0.0.0.0"
     ports:
       - "3000:3000"
@@ -20,7 +20,7 @@ services:
 
   mysql:
     image: mysql:8.0
-    container_name: unique-bundle-store-db
+    container_name: schmidt-store-db
     environment:
       MYSQL_ROOT_PASSWORD: senha@123
       MYSQL_USER: admin
@@ -35,7 +35,7 @@ services:
 
   phpmyadmin:
     image: phpmyadmin:5.2.1
-    container_name: unique-bundle-store-php-myadmin
+    container_name: schmidt-store-php-myadmin
     restart: always
     ports:
       - 3001:80
@@ -47,7 +47,7 @@ services:
 
   redis:
     image: redis:6.2
-    container_name: unique-bundle-store-redis
+    container_name: schmidt-store-redis
     restart: always
     ports:
       - "6379:6379"
