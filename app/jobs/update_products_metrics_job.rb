@@ -12,8 +12,9 @@ class UpdateProductsMetricsJob < ActiveJob::Base
     @total = products.count
 
     products.each_with_index do |prd, index|
-      p('sleeping for 2 seconds...')
-      sleep(2.seconds)
+      p('sleeping for 1 seconds...')
+      sleep(1.seconds)
+
       puts("Processando produto #{index + 1} de #{@total}: #{prd.id}")
       end_date = DateTime.now
       start_date = end_date - days
@@ -36,6 +37,8 @@ class UpdateProductsMetricsJob < ActiveJob::Base
 
       total_unit_count = 0
       total_sales_amount = 0.0
+
+      next unless parsed_response['payload'].present? 
 
       parsed_response['payload'].each do |item|
         total_unit_count += item['unitCount']
