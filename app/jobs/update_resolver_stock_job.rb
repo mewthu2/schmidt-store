@@ -1,4 +1,4 @@
-class UpdateFbaProductsSituationJob < ActiveJob::Base
+class UpdateResolverStockJob < ActiveJob::Base
   def perform
     # STEP1=obtain acess token
     @access_token = obtain_acess_token

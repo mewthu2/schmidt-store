@@ -8,48 +8,48 @@ class UpdateProductsMetricsJob < ActiveJob::Base
 
   def search_order_metrics(days, fulfillment_channel)
     products = Product.where(status: 'Active', fulfillment_channel:)
-  
+
     @total = products.count
-  
+
     products.each_with_index do |prd, index|
-      if prd.updated_at > 6.hours.ago
+      if prd.updated_at >= 6.hours.ago
         puts("Pulando produto #{index + 1} de #{@total} (ID: #{prd.id}), atualizado recentemente.")
         next
       end
-  
+
       p('sleeping for 1 second...')
       sleep(1.seconds)
-  
+
       puts("Processando produto #{index + 1} de #{@total}: #{prd.id}")
       end_date = DateTime.now
       start_date = end_date - days
-  
+
       formatted_start_date = start_date.iso8601
       formatted_end_date = end_date.iso8601
-  
+
       request_params = {
         'marketplaceIds' => ENV['MARKETPLACE_ID'],
         'interval' => "#{formatted_start_date}--#{formatted_end_date}",
         'granularity' => 'day',
         'sku' => prd.seller_sku
       }
-  
+
       order_metrics_uri = "#{ENV['ENDPOINT_AMAZON']}/sales/v1/orderMetrics"
       response = HTTParty.get(order_metrics_uri, query: request_params,
                                                  headers: { 'x-amz-access-token' => @access_token })
-  
+
       parsed_response = JSON.parse(response.body)
-  
+
       total_unit_count = 0
       total_sales_amount = 0.0
-  
+
       next unless parsed_response['payload'].present?
-  
+
       parsed_response['payload'].each do |item|
         total_unit_count += item['unitCount']
         total_sales_amount += item['totalSales']['amount'].to_f
       end
-  
+
       if days == 6
         prd.update_columns(total_unit_count_7: total_unit_count, total_sales_amount_7: total_sales_amount)
       else
@@ -57,7 +57,6 @@ class UpdateProductsMetricsJob < ActiveJob::Base
       end
     end
   end
-  
 
   private
 
