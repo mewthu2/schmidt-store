@@ -12,7 +12,7 @@ class UpdateProductsMetricsJob < ActiveJob::Base
     @total = products.count
 
     products.each_with_index do |prd, index|
-      if prd.updated_at >= 6.hours.ago
+      if prd.updated_at >= 2.hours.ago
         puts("Pulando produto #{index + 1} de #{@total} (ID: #{prd.id}), atualizado recentemente.")
         next
       end
