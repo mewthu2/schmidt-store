@@ -58,6 +58,7 @@ class UpdateResolverStockJob < ActiveJob::Base
     token_params = {
       grant_type: 'refresh_token',
       client_id: ENV['LWA_APP_ID'],
+      refresh_token: ENV['REFRESH_TOKEN'],
       client_secret: ENV['LWA_CLIENT_SECRET']
     }
     token_response = HTTParty.post(ENV['TOKEN_URI'], body: token_params)
