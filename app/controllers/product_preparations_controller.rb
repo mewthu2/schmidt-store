@@ -111,7 +111,7 @@ class ProductPreparationsController < ApplicationController
   private
 
   def load_references
-    @products = Product.all
+    @products = Product.where(fulfillment_channel: 'FBA', status: 'Active')
   end
 
   # Set product_preparation by ID
